@@ -4,7 +4,7 @@ import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 
 contract APIConsumer is ChainlinkClient {
   
-    uint256 public price;
+    uint256 public floor_price;
     
     address private oracle;
     bytes32 private jobId;
@@ -26,7 +26,7 @@ contract APIConsumer is ChainlinkClient {
     
     /**
      * Create a Chainlink request to retrieve API response, find the target price
-     * data, then multiply by 100 (to remove decimal places from price).
+     * data, then multiply by 100000 (to remove decimal places from price).
      */
     function requestPrice() public returns (bytes32 requestId) 
     {
@@ -34,28 +34,10 @@ contract APIConsumer is ChainlinkClient {
         
         request.add("get", "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=EUR");
         
-       // Set the path to find the desired data in the API response, where the response format is:
-       // {
-       //     "Realtime Currency Exchange Rate": {
-       //       "1. From_Currency Code": "BTC",
-       //       "2. From_Currency Name": "Bitcoin",
-       //       "3. To_Currency Code": "CNY",
-       //       "4. To_Currency Name": "Chinese Yuan",
-       //       "5. Exchange Rate": "207838.88814500",
-       //       "6. Last Refreshed": "2021-01-26 11:11:07",
-       //       "7. Time Zone": "UTC",
-       //      "8. Bid Price": "207838.82343000",
-       //       "9. Ask Price": "207838.88814500"
-       //     }
-       //     }
-        //string[] memory path = new string[](2);
-        //path[0] = "Realtime Currency Exchange Rate";
-        //path[1] = "5. Exchange Rate";
-        //request.addStringArray("path", path);
-        request.add("path", "EUR");
+        request.add("path", "floor");
         
         // Multiply the result by 10000000000 to remove decimals
-        request.addInt("times", 100);
+        request.addInt("times", 100000);
         
         // Sends the request
         return sendChainlinkRequestTo(oracle, request, fee);
@@ -66,6 +48,10 @@ contract APIConsumer is ChainlinkClient {
      */ 
     function fulfill(bytes32 _requestId, uint256 _price) public recordChainlinkFulfillment(_requestId)
     {
-        price = _price;
+        floor_price = _price;
+    }
+
+    function get_floor() public view (uint256) {
+        return floor_price;
     }
 }
