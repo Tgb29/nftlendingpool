@@ -11,8 +11,14 @@ logger.setLevel(logging.DEBUG)
 
 def get_floor(event, context):
     logger.info(event)
-    body = json.loads(event['body'])
 
+    floor = dynamodb.Table('Config').get_item(Key={'configKey': 'floor_price'})['Item']['last_update']
+
+    '''
+    return {
+        "floor": floor
+    }
+    '''
 
     return {
         "floor": 375.85168
@@ -47,13 +53,5 @@ def call_covalent(event, context):
         }
     )
     logger.info('config updated')
-    '''
-    return {
-        "floor": 375.85168
-    }
-    '''
 
-    return {
-        "floor": 375.85168
-    }
-
+    return 
