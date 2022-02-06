@@ -32,7 +32,7 @@ contract APIConsumer is ChainlinkClient {
     {
         Chainlink.Request memory request = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
         
-        request.add("get", "https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=EUR");
+        request.add("get", "https://39rkg8zgnk.execute-api.us-west-2.amazonaws.com/default/get_floor");
         
         request.add("path", "floor");
         
