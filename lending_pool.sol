@@ -17,16 +17,25 @@ contract LendingPool {
     uint public reserve;
     uint nfts_in_pool;
     address admin;
+    uint public total_borrowed;
 
     uint floor_price;
     uint blocks_per_year;
     uint nft_interest = 15 * 10**16;
+    uint blocksPerDay = 6570; // 13.15 seconds per block
+    uint daysPerYear = 365;
+    uint usdc_interest_rate = ;
 
+    //borrowers
     mapping(address => uint256[]) NftOwnerToIds;
     mapping(address => uint256) NftOwnerToNumStaked;
     mapping(uint => address) NftIdToOwner;
     mapping(address => uint256) borrow_balance;
     mapping(uint256 => uint256) borrow_time;
+
+    //lenders
+    mapping(address => uint256) lend_balance;
+    mapping(uint256 => uint256) lend_time;
 
     constructor(address nft, address ft, address _api_consumer) {
         nft_address = IERC721(nft);
@@ -80,24 +89,55 @@ contract LendingPool {
         require(amount < usdc_pool);
         usdc_address.transfer(msg.sender, amount);
         borrow_balance[msg.sender] += amount;
-        usdc_pool -= amount;
         borrow_time[msg.sender] = block.number;
+        usdc_pool -= amount;
+        total_borrowed += amount;
+
+        update_usdc_rate();
 
     }
 
     function payback_usdc(uint256 amount) public {
-        interest_due = borrow_balance[msg.sender] * (block.number-borrow_time[msg.sender] / (blocks_per_year)) * 15 * 10**16
-        //total_due = borrow_balance[msg.sender] + interest_due
-        require(amount-total_due > 1 *10**18)
+        fee = 5*10**18
+        interest_due = borrow_balance[msg.sender] * (block.number-borrow_time[msg.sender] / (blocksPerDay*daysPerYear)) * 15 * 10**16;
+        total_due = fee + interest_due + borrow_balance[msg.sender]
+        require(amount-total_due > 1 *10**18);
+        
+        usdc_address.transferFrom(msg.sender, address(this), amount);
+        usdc_pool += interest_due + borrow_balance[msg.sender]
+        reserve += (amount - interest_due + borrow_balance[msg.sender];
+        
+        total_borrowed -= borrow_balance[msg.sender];
+        borrow_balance[msg.sender] = 0;
+
+        update_usdc_rate();
+        
+
     }
 
     //USDC lender
 
     function lend_usdc(uint256 amount) public {
+        usdc_address.transferFrom(msg.sender, address(this), amount);
+        usdc_pool += amount;
+        lend_balance[msg.sender] += amount;
+        lend_time[msg.sender] = block.number;
+
+        update_usdc_rate();
 
     }
 
-    function withdraw_usdc(uint256 amount) public {
+    function withdraw_usdc() public {
+        require(lend_balance[msg.sender] >0);
+        interest_earned = lend_balance[msg.sender] * (block.number-lend_time[msg.sender] / (blocksPerDay*daysPerYear)) * usdc_interest_rate;
+        total = lend_balance[msg.sender] + interest_earned; 
+
+        usdc_address.transfer(msg.sender, total;
+        usdc_pool -= total;
+        lend_balance[msg.sender] = 0;
+        delete lend_time[msg.sender];
+
+        update_usdc_rate();
 
     }
 
@@ -106,6 +146,14 @@ contract LendingPool {
     }
 
     function buy(uint256 token_id) public {
+
+    }
+
+    function update_usdc_rate() public {
+        uint public usdc_pool;
+        uint public total_borrowed;
+        uint apy_forecast = total_borrowed * nft_interest;
+        uint usdc_interest_rate = apy_forecast / usdc_pool;
 
     }
 
@@ -139,6 +187,14 @@ contract LendingPool {
 
     function get_borrow_time(address borrower) public view (uint256) {
         return borrow_time[msg.sender];
+    }
+
+    function get_lend_balance(address lender) public view (uint256) {
+        return lend_balance[msg.sender];
+    }
+
+    function get_lend_time(address lender) public view (uint256) {
+        return lend_time[msg.sender];
     }
 
 }
