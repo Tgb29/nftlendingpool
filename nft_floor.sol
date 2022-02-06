@@ -37,7 +37,7 @@ contract APIConsumer is ChainlinkClient {
         request.add("path", "floor");
         
         // Multiply the result by 10000000000 to remove decimals
-        request.addInt("times", 100000);
+        //request.addInt("times", 100000);
         
         // Sends the request
         return sendChainlinkRequestTo(oracle, request, fee);
