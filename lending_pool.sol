@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+pragma solidity 0.8.7;
+//SPDX-License-Identifier: UNLICENSED
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -6,49 +7,52 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 //import api consumer interface
 //maybe implement ierc20 receiver interface
 
+interface IAPIConsumer {
+    function get_floor() external view returns(uint256);
+    }
 
 contract LendingPool {
 
     IERC721 public nft_address;
     IERC20 public usdc_address;
 
-    uint public nft_pool;
-    uint public usdc_pool;
-    uint public reserve;
-    uint nfts_in_pool;
+    uint256  public nft_pool;
+    uint256  public usdc_pool;
+    uint256  public reserve;
+    uint256  nfts_in_pool;
     address admin;
-    uint public total_borrowed;
+    uint256  public total_borrowed;
 
-    uint floor_price;
-    uint blocks_per_year;
-    uint borrowInterestRate = 20 * 10**16;
-    uint blocksPerDay = 6570; // 13.15 seconds per block
-    uint daysPerYear = 365;
-    uint lenderInterestRate = 10 * 10**16;
-    uint collateral_factor = 3 * 10**17;
-    uint discount_rate = 85 * 10**16
+    uint256  floor_price;
+    uint256  blocks_per_year;
+    uint256  borrowInterestRate = 20 * 10**16;
+    uint256  blocksPerDay = 6570; // 13.15 seconds per block
+    uint256  daysPerYear = 365;
+    uint256  lenderInterestRate = 10 * 10**16;
+ 
+    uint256  collateral_factor = 3 * 10**17;
+    uint256  discount_rate = 85 * 10**16;
 
     //borrowers
     mapping(address => uint256[]) NftOwnerToIds;
     mapping(address => uint256) NftOwnerToNumStaked;
-    mapping(uint => address) NftIdToOwner;
+    mapping(uint256  => address) NftIdToOwner;
     mapping(address => uint256) borrow_balance;
-    mapping(uint256 => uint256) borrow_time;
+    mapping(address => uint256) borrow_time;
 
     address[] positions;
 
     //lenders
     mapping(address => uint256) lend_balance;
-    mapping(uint256 => uint256) lend_time;
+    mapping(address => uint256) lend_time;
 
-    constructor(address nft, address ft, address _api_consumer) {
+    constructor(address nft, address ft) {
         nft_address = IERC721(nft);
         //nft allowed for collateral
         usdc_address = IERC20(ft);
         //erc20 ft (fungible token) for lending and borrowing
-        api_consumer = APIConsumer(_api_consumer);
-        //oracle for getting floor price
-        admin = msg.sender
+
+        admin = msg.sender;
     }
 
 
@@ -60,7 +64,7 @@ contract LendingPool {
 
         nfts_in_pool += 1;
         NftOwnerToIds[msg.sender].push(token_id);
-        NftOwnerToNumStaked += 1;
+        NftOwnerToNumStaked[msg.sender] += 1;
         NftIdToOwner[token_id] = msg.sender;
 
         positions.push(msg.sender);
@@ -72,15 +76,15 @@ contract LendingPool {
         require(borrow_balance[msg.sender] == 0); //allow for balance to be less than 1 penny
         nfts_in_pool -=1;
         for (uint i =0; i < NftOwnerToIds[msg.sender].length; i++){
-            if (NftOwnerToIds[msg.sender][i] == id){
+            if (NftOwnerToIds[msg.sender][i] == token_id){
                 delete NftOwnerToIds[msg.sender][i];
             }
         }
         NftOwnerToNumStaked[msg.sender] -= 1;
-        delete NftIdToOwner[id];
+        delete NftIdToOwner[token_id];
 
         
-        nft_address.safeTransferFrom(address(this), msg.sender, id, "");
+        nft_address.safeTransferFrom(address(this), msg.sender, token_id, "");
 
     }
 
@@ -88,8 +92,8 @@ contract LendingPool {
         require(NftOwnerToNumStaked[msg.sender] > 0);
         require(borrow_balance[msg.sender] == 0);
 
-        collateral_value = floor_price * NftOwnerToNumStaked[msg.sender];
-        borrow_limit = collateral_value * collateral_factor;
+        uint256 collateral_value = floor_price * NftOwnerToNumStaked[msg.sender];
+        uint256 borrow_limit = collateral_value * collateral_factor;
         //borrow_remaining = max_borrow - borrow_balance[msg.sender];
         require(amount < borrow_limit);
         require(amount < usdc_pool);
@@ -104,12 +108,12 @@ contract LendingPool {
     }
 
     function payback_usdc() public {
-        fee = 5*10**18
-        interest_due = borrow_balance[msg.sender] * (block.number-borrow_time[msg.sender] / (blocksPerDay*daysPerYear)) * borrowInterestRate;
-        total_due = fee + interest_due + borrow_balance[msg.sender]
+        uint256 fee = 5*10**18;
+        uint256  interest_due = borrow_balance[msg.sender] * (block.number-borrow_time[msg.sender] / (blocksPerDay*daysPerYear)) * borrowInterestRate;
+        uint256  total_due = fee + interest_due + borrow_balance[msg.sender];
         
         usdc_address.transferFrom(msg.sender, address(this), total_due);
-        usdc_pool += interest_due + borrow_balance[msg.sender]
+        usdc_pool += interest_due + borrow_balance[msg.sender];
         reserve += fee;
         
         total_borrowed -= borrow_balance[msg.sender];
@@ -134,10 +138,10 @@ contract LendingPool {
 
     function withdraw_usdc() public {
         require(lend_balance[msg.sender] >0);
-        interest_earned = lend_balance[msg.sender] * (block.number-lend_time[msg.sender] / (blocksPerDay*daysPerYear)) * lenderInterestRate;
-        total = lend_balance[msg.sender] + interest_earned; 
+        uint256  interest_earned = lend_balance[msg.sender] * (block.number-lend_time[msg.sender] / (blocksPerDay*daysPerYear)) * lenderInterestRate;
+        uint256  total = lend_balance[msg.sender] + interest_earned; 
 
-        usdc_address.transfer(msg.sender, total;
+        usdc_address.transfer(msg.sender, total);
         usdc_pool -= total;
         lend_balance[msg.sender] = 0;
         delete lend_time[msg.sender];
@@ -146,27 +150,27 @@ contract LendingPool {
 
     }
 
-    function liquidate(uint256 address) public {
-        liquidation_price = NftOwnerToNumStaked[address] * floor_price * discount_rate;
-        require(borrow_balance[address] > liquidation_price);
-        usdc_address.transferFrom(msg.sender, address(this), borrow_balance[address];
-        usdc_pool += borrow_balance[address];
+    function liquidate(address borrower) public {
+        uint256  liquidation_price = NftOwnerToNumStaked[borrower] * floor_price * discount_rate;
+        require(borrow_balance[borrower] > liquidation_price);
+        usdc_address.transferFrom(msg.sender, address(this), borrow_balance[borrower]);
+        usdc_pool += borrow_balance[borrower];
         
-        total_borrowed -= borrow_balance[address];
-        borrow_balance[address] = 0;
-        delete borrow_time[address];
+        total_borrowed -= borrow_balance[borrower];
+        borrow_balance[borrower] = 0;
+        delete borrow_time[borrower];
 
         //move nfts from user who was liquidated to liquidator
-        NftOwnerToNumStaked[msg.sender] = NftOwnerToNumStaked[address];
-        NftOwnerToNumStaked[address] =0;
+        NftOwnerToNumStaked[msg.sender] = NftOwnerToNumStaked[borrower];
+        NftOwnerToNumStaked[borrower] =0;
 
         
-        for (uint i =0; i < NftOwnerToIds[address].length; i++){
-            if (NftOwnerToIds[address][i] > 0){
-                token_id = NftOwnerToIds[address][i];
+        for (uint i =0; i < NftOwnerToIds[borrower].length; i++){
+            if (NftOwnerToIds[borrower][i] > 0){
+                uint256  token_id = NftOwnerToIds[borrower][i];
                 NftIdToOwner[token_id] = msg.sender;
                 NftOwnerToIds[msg.sender].push(token_id);
-                delete NftOwnerToIds[address][i];
+                delete NftOwnerToIds[borrower][i];
             }
         }
 
@@ -175,10 +179,8 @@ contract LendingPool {
 
 
     function updateLenderInterestRate() public {
-        uint public usdc_pool;
-        uint public total_borrowed;
-        uint apy_forecast = total_borrowed * borrowInterestRate;
-        uint lenderInterestRate = apy_forecast / usdc_pool;
+        uint256  apy_forecast = total_borrowed * borrowInterestRate;
+        lenderInterestRate = apy_forecast / usdc_pool;
 
     }
 
@@ -186,11 +188,12 @@ contract LendingPool {
 
     function update_floor() public {
         //call APIConsumer and get floor
-        floor = api_consumer.get_floor();
+
+        floor_price = IAPIConsumer(0x4Be7C4A3A51D9D87a06D230F441CA7564E685592).get_floor();
 
     }
 
-    function update_nft_interest(uint256 new_interest) public {
+    function updateBorrowInterestRate(uint256 new_interest) public {
         borrowInterestRate = new_interest;
 
     }
@@ -199,27 +202,27 @@ contract LendingPool {
 
     function withdraw_usdc(address ceo) public {
         require(admin == msg.sender, "user not admin");
-        ft_address.transfer(ceo, reserve);
+        usdc_address.transfer(ceo, reserve);
         reserve = 0;
 
     }
 
     //getter
 
-    function get_usdc_pool() public view (uint256) {
+    function get_usdc_pool() public view returns(uint256) {
         return usdc_pool;
     }
 
-    function get_borrow_time(address borrower) public view (uint256) {
-        return borrow_time[msg.sender];
+    function get_borrow_time(address borrower) public view returns(uint256) {
+        return borrow_time[borrower];
     }
 
-    function get_lend_balance(address lender) public view (uint256) {
-        return lend_balance[msg.sender];
+    function get_lend_balance(address lender) public view returns(uint256) {
+        return lend_balance[lender];
     }
 
-    function get_lend_time(address lender) public view (uint256) {
-        return lend_time[msg.sender];
+    function get_lend_time(address lender) public view returns(uint256) {
+        return lend_time[lender];
     }
 
 }
