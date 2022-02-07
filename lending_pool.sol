@@ -23,7 +23,7 @@ contract LendingPool {
     address admin;
     uint256  public total_borrowed;
 
-    uint256  floor_price;
+    uint256  public floor_price;
     uint256  blocks_per_year;
     uint256  borrowInterestRate = 20 * 10**16;
     uint256  blocksPerDay = 6570; // 13.15 seconds per block
@@ -92,9 +92,11 @@ contract LendingPool {
 
     }
 
-    function borrow_usdc(uint256 amount) public {
+    function borrow_usdc(uint256 _amount) public {
         require(NftOwnerToNumStaked[msg.sender] > 0);
         require(borrow_balance[msg.sender] == 0);
+
+        uint256 amount = _amount * 10**18
 
         uint256 collateral_value = floor_price * NftOwnerToNumStaked[msg.sender];
         uint256 borrow_limit = collateral_value * collateral_factor;
@@ -130,7 +132,8 @@ contract LendingPool {
 
     //USDC lender
 
-    function lend_usdc(uint256 amount) public {
+    function lend_usdc(uint256 _amount) public {
+        uint256 amount = _amount * 10**18;
         usdc_address.transferFrom(msg.sender, address(this), amount);
         usdc_pool += amount;
         lend_balance[msg.sender] += amount;
@@ -193,7 +196,7 @@ contract LendingPool {
     function update_floor() public {
         //call APIConsumer and get floor
 
-        floor_price = IAPIConsumer(0x4Be7C4A3A51D9D87a06D230F441CA7564E685592).get_floor();
+        floor_price = IAPIConsumer(0x637D7d8EE6aE0A038EbC8c72DD4D14373A61FAE7).get_floor() * 10**13;
 
     }
 
@@ -217,8 +220,8 @@ contract LendingPool {
         return usdc_pool;
     }
 
-    function get_usdc_pool() public view returns(uint256) {
-        return usdc_pool;
+    function get_total_borrowed() public view returns(uint256) {
+        return total_borrowed;
     }
 
     function get_borrow_time(address borrower) public view returns(uint256) {

@@ -1,4 +1,4 @@
-pragma solidity ^0.6.0;
+pragma solidity 0.8.7;
 
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 
@@ -51,7 +51,7 @@ contract APIConsumer is ChainlinkClient {
         floor_price = _price;
     }
 
-    function get_floor() public view (uint256) {
+    function get_floor() public view returns(uint256) {
         return floor_price;
     }
 }
