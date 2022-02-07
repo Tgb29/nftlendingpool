@@ -1,9 +1,39 @@
 <html xmlns="http://www.w3.org/1999/xhtml" >
 <head>
-    <title>My Website Home Page</title>
+    <meta charset="utf-8">
+    <title>NFT Lending Pools</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.0/web3.min.js" integrity="sha512-C63V0mFzwl8KV2fRz0QJNKX0d9877urOLSUq5WUq8nUOhDl69hKdGr9mAvl57k47GNjqEMAtiufsvDnk7xs8+w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="lending_api.js"></script>
 </head>
 <body>
-  <h1>Welcome to my website</h1>
-  <p>Now hosted on Amazon S3!</p>
+  <h1>NFT Lending Pools</h1>
+  <p>NFT Collectors: Deposit your NFTs and use them as collateral to borrow USDC.</p>
+  <p>Lenders: Deposit USDC and earn high APYs when NFT collectors borrow USDC.</p>
+  <p>Buyers: Liquidate delinquent borrowers and buy their NFTs below market prices.</p>
+  <br>
+  <br>
+
+
 </body>
 </html>
+
+
+<br>
+<br>
+Wallet USDC Balance: <div id="usdc_balance"></div>
+<button onclick="getErc20Balance(window.eth_accounts[0])">Get ERC20 Balance</button>
+<br>
+Wallet NFT Balance: <div id="nft_balance"></div>
+<button onclick="getErc721Balance(window.eth_accounts[0])">Get ERC721 Balance</button>
+<br>
+USDC Pool: <div id="usdc_pool"></div>
+<button onclick="get_usdc_pool()">Get USDC Pool</button>
+<br>
+NFT Pool: <div id="nft_pool"></div>
+<button onclick="get_total_borrowed(window.eth_accounts[0])">Get NFT Pool</button>
+
+
+<br>
+<br>
+
+

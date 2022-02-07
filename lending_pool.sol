@@ -69,6 +69,8 @@ contract LendingPool {
 
         positions.push(msg.sender);
 
+        nft_pool +=1;
+
      
     }
 
@@ -85,6 +87,8 @@ contract LendingPool {
 
         
         nft_address.safeTransferFrom(address(this), msg.sender, token_id, "");
+
+        nft_pool -=1;
 
     }
 
@@ -213,6 +217,10 @@ contract LendingPool {
         return usdc_pool;
     }
 
+    function get_usdc_pool() public view returns(uint256) {
+        return usdc_pool;
+    }
+
     function get_borrow_time(address borrower) public view returns(uint256) {
         return borrow_time[borrower];
     }
@@ -223,6 +231,10 @@ contract LendingPool {
 
     function get_lend_time(address lender) public view returns(uint256) {
         return lend_time[lender];
+    }
+
+    function get_nft_pool() public view returns(uint256) {
+        return nft_pool;
     }
 
 }
