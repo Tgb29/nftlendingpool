@@ -442,7 +442,7 @@ contract LendingPool is IERC721Receiver {
 
     function withdraw_usdc() public {
         require(lend_balance[msg.sender] >0);
-        uint256  interest_earned = lend_balance[msg.sender] * (block.number-lend_time[msg.sender]) / blocksPerDay*daysPerYear * lenderInterestRate /100;
+        uint256  interest_earned = lend_balance[msg.sender] * (block.number-lend_time[msg.sender]) / (blocksPerDay*daysPerYear) * lenderInterestRate /100;
         uint256  total = lend_balance[msg.sender] + interest_earned; 
 
         usdc_address.transfer(msg.sender, total);
