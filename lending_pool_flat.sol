@@ -411,7 +411,7 @@ contract LendingPool is IERC721Receiver {
 
     function payback_usdc() public {
         uint256 fee = 5*10**18;
-        uint256  interest_due = borrow_balance[msg.sender] * (block.number-borrow_time[msg.sender]) / blocksPerDay*daysPerYear * borrowInterestRate /100;
+        uint256  interest_due = borrow_balance[msg.sender] * (block.number-borrow_time[msg.sender]) / (blocksPerDay*daysPerYear) * borrowInterestRate /100;
         uint256  total_due = fee + interest_due + borrow_balance[msg.sender];
         
         usdc_address.transferFrom(msg.sender, address(this), total_due);
